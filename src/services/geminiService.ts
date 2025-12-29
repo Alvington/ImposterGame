@@ -8,7 +8,7 @@ export async function generateGameData(
   strategy: ImposterStrategy,
   customItems?: CustomItem[]
 ): Promise<GameData> {
-  const apiKey = import.meta.env.VITE_API_KEY || '';
+  const apiKey = import.meta.env.VITE_API_KEY || 'AIzaSyBi6WwnWWfEwbOtQ_srpt5OAQuUJ-ag148';
   
   if (!apiKey) {
     // Return fallback data if no API key
