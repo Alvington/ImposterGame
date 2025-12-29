@@ -67,23 +67,7 @@ A modern multiplayer word game where players compete to identify imposters in a 
 - **AI Integration**: Google Gemini AI
 - **Icons**: Lucide React
 
-## 🏗️ Development
 
-### Available Scripts
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build locally
-npm run preview
-
-# Type checking
-npx tsc --noEmit
-```
 
 ### Project Structure
 
@@ -106,36 +90,6 @@ Create a `.env` file in the root directory:
 ```env
 VITE_GEMINI_API_KEY=your_google_gemini_api_key_here
 ```
-
-## 🚀 Deployment
-
-### Quick Deploy to Netlify
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Alvington/ImposterGame)
-
-1. Click the deploy button above
-2. Connect your GitHub account
-3. Set build settings:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
-4. Deploy automatically on every push to main branch
-
-### Manual Deployment
-
-1. **Build the project:**
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy the `dist/` folder** to your hosting service
-
-### Supported Platforms
-
-- ✅ Netlify (recommended)
-- ✅ Vercel
-- ✅ GitHub Pages
-- ✅ Firebase Hosting
-- ✅ Any static hosting service
 
 ## 🎮 Game Rules & Mechanics
 
@@ -160,7 +114,7 @@ VITE_GEMINI_API_KEY=your_google_gemini_api_key_here
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+I welcome contributions! Here's how you can help:
 
 ### Development Setup
 
@@ -180,14 +134,6 @@ We welcome contributions! Here's how you can help:
 - Test new features across different browsers
 - Update documentation as needed
 
-### Reporting Issues
-
-Please use the [GitHub Issues](https://github.com/Alvington/ImposterGame/issues) page to:
-- Report bugs
-- Request features
-- Ask questions
-- Provide feedback
-
 ## 📱 Screenshots
 
 *Screenshots will be added soon - showing the game interface and gameplay*
@@ -198,10 +144,6 @@ Please use the [GitHub Issues](https://github.com/Alvington/ImposterGame/issues)
 - **Local storage**: Game progress and settings are stored locally in your browser
 - **Online mode**: Real-time communication without data persistence
 - **Open source**: All code is transparent and auditable
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -224,7 +166,7 @@ Need help or have questions?
 
 <div align="center">
 
-**Made with ❤️ by Alvington**
+**Made by Sensei Alvington**
 
 [⭐ Star this project](https://github.com/Alvington/ImposterGame) if you enjoy playing!
 
