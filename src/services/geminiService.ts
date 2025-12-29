@@ -8,17 +8,14 @@ export async function generateGameData(
   strategy: ImposterStrategy,
   customItems?: CustomItem[]
 ): Promise<GameData> {
-  const apiKey = import.meta.env.VITE_API_KEY || '';
-  
-  if (!apiKey) {
-    // Return fallback data if no API key
-    return { 
-      word: "Solar Eclipse", 
-      hint: "A rare cosmic alignment", 
-      strategy: ImposterStrategy.HINT 
-    };
-  }
-  
+  const apiKey = process.env.VITE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+if (!apiKey) {
+  return { word: "Solar Eclipse", 
+          hint: "Fallback", 
+          strategy: ImposterStrategy.HINT };
+}
+
   const ai = new GoogleGenerativeAI(apiKey);
   const randomSeed = Math.floor(Math.random() * 2147483647);
   
