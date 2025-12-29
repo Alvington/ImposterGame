@@ -1,5 +1,5 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { GameData, Source, Difficulty, CustomItem, ImposterStrategy } from "../types";
 
 export async function generateGameData(
@@ -8,88 +8,85 @@ export async function generateGameData(
   strategy: ImposterStrategy,
   customItems?: CustomItem[]
 ): Promise<GameData> {
+  // Use process.env for Vercel Backend / Serverless
+  // Use import.meta.env for Vite Frontend (Not recommended for Secret Keys)
   const apiKey = process.env.VITE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-if (!apiKey) {
-  return { word: "Solar Eclipse", 
-          hint: "Fallback", 
-          strategy: ImposterStrategy.HINT };
-}
+  if (!apiKey) {
+    console.warn("AI API Key missing, using fallback data.");
+    return { 
+      word: "Solar Eclipse", 
+      hint: "A rare cosmic alignment", 
+      strategy: ImposterStrategy.HINT 
+    };
+  }
 
-  const ai = new GoogleGenerativeAI(apiKey);
-  const randomSeed = Math.floor(Math.random() * 2147483647);
+  const genAI = new GoogleGenerativeAI(apiKey);
   
-  let prompt = "";
-  
-  if (customItems && customItems.length > 0) {
-    const itemsJson = JSON.stringify(customItems);
-    prompt = `Custom Category: ${category}. Data: ${itemsJson}. Strategy: ${strategy}. 
-    Pick ONE item. If strategy is WRONG_WORD, create a very similar word to the chosen one. 
-    If strategy is HINT, provide a hint based on difficulty ${difficulty}. 
-    CRITICAL: Hints MUST be punchy and strictly under 8 words. No long sentences.`;
-  } else {
-    const strategyContext = {
-      [ImposterStrategy.HINT]: "Generate a 'Secret Word' and a 'Cryptic Hint' for the imposter.",
-      [ImposterStrategy.WRONG_WORD]: "Generate a 'Secret Word' for Civilians and a 'Wrong Word' for the Imposter. The 'Wrong Word' must be in the same sub-category and very similar (e.g., if Word is 'Guitar', Wrong Word is 'Ukulele').",
-      [ImposterStrategy.BLIND]: "Generate a 'Secret Word' only. The Imposter will receive '???'."
-    };
+  // Choose the prompt based on strategy
+  const strategyContext = {
+    [ImposterStrategy.HINT]: "Generate a 'word' and a 'hint' (for the imposter).",
+    [ImposterStrategy.WRONG_WORD]: "Generate a 'word' (for civilians) and an 'imposterWord' (similar to the word).",
+    [ImposterStrategy.BLIND]: "Generate only the 'word'."
+  };
 
-    const difficultyContext = {
-      [Difficulty.EASY]: "Use extremely common, universally known words. Hints must be very descriptive.",
-      [Difficulty.AVERAGE]: "Standard concepts with clever hints.",
-      [Difficulty.ADVANCED]: "Niche concepts.",
-      [Difficulty.EXPERT]: "Obscure concepts."
-    };
+  const difficultyContext = {
+    [Difficulty.EASY]: "Common, simple words.",
+    [Difficulty.AVERAGE]: "Standard concepts.",
+    [Difficulty.ADVANCED]: "Niche/technical concepts.",
+    [Difficulty.EXPERT]: "Obscure/rare concepts."
+  };
 
-    const blacklist: Record<string, string> = {
-      "Bible": "Noah's Ark, Jesus, Moses, Adam and Eve, David and Goliath, The Cross, Jonah",
-      "Silly & Random": "Toilet Paper, Banana, Rubber Duck, Toothbrush",
-      "Animals & Nature": "Lion, Elephant, Tiger, Dog, Cat, Rose"
-    };
+  const blacklist = "Bible tropes, Toilet Paper, Banana, Lion, Dog";
 
-    prompt = `Imposter Game Engine:
+  let prompt = `
+    Role: Imposter Game Engine.
     Category: "${category}"
     Difficulty: "${difficulty}" (${difficultyContext[difficulty]})
     Mode: "${strategy}" (${strategyContext[strategy]})
-    
-    ANTI-REPETITION RULES:
-    - ABSOLUTELY DO NOT USE these common tropes: ${blacklist[category] || "any basic trope"}.
-    - Think of 10 words in this category. Discard the most obvious 5. Pick one from the remaining 5.
-    
-    BREVITY RULE (MANDATORY):
-    - The "hint" MUST be under 8 words. Be extremely concise. Use short phrases rather than full sentences.
-    
-    OUTPUT REQUIREMENTS:
-    - If HINT mode: provide "word" and "hint".
-    - If WRONG_WORD mode: provide "word" and "imposterWord".
-    - If BLIND mode: provide "word".
-    
-    Return a valid JSON object.`;
+
+    Rules:
+    1. Do not use: ${blacklist}.
+    2. Brevity: Hints MUST be under 8 words.
+    3. JSON Format: You must return valid JSON matching the requested mode.
+  `;
+
+  if (customItems && customItems.length > 0) {
+    prompt += `\nCustom Items to pick from: ${JSON.stringify(customItems)}`;
   }
 
   try {
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      // Optional: enforce response schema if using higher SDK versions
+    });
     
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }]}],
       generationConfig: {
-        temperature: 1.0,
+        temperature: 0.9, // Slightly lower for more consistent JSON
         responseMimeType: "application/json",
       },
     });
 
-    const response = result.response;
-    const text = response.text();
+    const text = result.response.text();
     const data = JSON.parse(text || "{}");
-    
-    const sources: Source[] = [];
-    // Note: The new API doesn't include sources in the same way
-    // You can add source tracking here if needed
 
-    return { ...data, strategy, sources: sources.length > 0 ? sources : undefined } as GameData;
+    // Ensure the returned object matches the GameData interface
+    return {
+      word: data.word || "Default Word",
+      hint: data.hint || undefined,
+      imposterWord: data.imposterWord || undefined,
+      strategy: strategy,
+      sources: [] // Gemini 1.5 doesn't provide citations via API like this
+    };
 
   } catch (error) {
     console.error("GenAI Error:", error);
-    return { word: "Solar Eclipse", hint: "A rare cosmic alignment", strategy: ImposterStrategy.HINT };
+    return { 
+      word: "Solar Eclipse", 
+      hint: "A rare cosmic alignment", 
+      strategy: ImposterStrategy.HINT 
+    };
   }
 }
